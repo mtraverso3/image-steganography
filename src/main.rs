@@ -47,9 +47,53 @@ fn main() {
 }
 
 fn embed_image(input_image_path: &str, target_image_path: &str, output_image_path: &str) {
-    todo!("Implement me!");
+    let img = image::open(input_image_path).unwrap();
+    let target_img = image::open(target_image_path).unwrap();
+    let (width, height) = img.dimensions();
+    
+    if target_img.dimensions() != (width, height) {
+        eprintln!("Error: The input image and target image must have the same dimensions.");
+    }
+
+    let mut new_img = ImageBuffer::new(width, height);
+
+    for x in 0..width {
+        for y in 0..height {
+            let pixel = img.get_pixel(x, y).0;
+            let target_pixel = target_img.get_pixel(x, y).0;
+            let mut new_pixel = [0; 3];
+
+            // Grab the two least significant bits of each pixel color channel
+            for k in 0..3 {
+                new_pixel[k] = (target_pixel[k] & 0b11111100) | (pixel[k] >> 6);
+            }
+
+            new_img.put_pixel(x, y, Rgb(new_pixel));
+        }
+    }
+
+    new_img.save(output_image_path).unwrap();
 }
 
 fn extract_image(input_image_path: &str, output_image_path: &str) {
-    todo!("Implement me!");
+    let img = image::open(input_image_path).unwrap();
+    let (width, height) = img.dimensions();
+
+    let mut new_img = ImageBuffer::new(width, height);
+
+    for x in 0..width {
+        for y in 0..height {
+            let pixel = img.get_pixel(x, y).0;
+            let mut new_pixel = [0; 3];
+
+            // Grab only the two least significant bits of each pixel color channel
+            for k in 0..3 {
+                new_pixel[k] = (pixel[k] & 0b00000011) << 6;
+            }
+
+            new_img.put_pixel(x, y, Rgb(new_pixel));
+        }
+    }
+
+    new_img.save(output_image_path).unwrap();
 }
